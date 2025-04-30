@@ -27,7 +27,7 @@ There are no settings. Simply activate the plugin and start using the shortcodes
 2. `[gaad_pledge_hour_total]`: outputs the total number of hours pledged from approved entries
 3. `[gaad_pledge_participant_grid]`: outputs grid of participants from approved entries
 
-Each shortcode accepts a parameter for the Gravity Form form ID number to make is easier when testing on a local install where the ID of the form does not match the ID of the form on production. 
+Each shortcode accepts an attribute for the Gravity Form form ID number to make is easier when testing on a local install where the ID of the form does not match the ID of the form on production. 
 
 Example shortcode with attribute: `[gaad_pledge_people_count gf_id="1"]`
 

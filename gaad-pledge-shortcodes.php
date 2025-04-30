@@ -22,4 +22,17 @@
 // Plugin directory
 define( 'EDGPS_DIR' , plugin_dir_path( __FILE__ ) );
 
-require_once( EDGPS_DIR . '/inc/shortcodes.php' );
+require_once( EDGPS_DIR . '/inc/shortcode-people-count.php' );
+require_once( EDGPS_DIR . '/inc/shortcode-hour-total.php' );
+require_once( EDGPS_DIR . '/inc/shortcode-participant-grid.php' );
+
+function gaad_pledge_shortcodes_enqueue_styles() {
+    wp_enqueue_style(
+        'styles', // Handle name
+        plugin_dir_url( __FILE__ ) . 'assets/styles.css', // Path to the CSS file
+        array(), // Dependencies (if any)
+        '1.0', // Version
+        'all'  // Media type
+    );
+}
+add_action( 'wp_enqueue_scripts', 'gaad_pledge_shortcodes_enqueue_styles' );
