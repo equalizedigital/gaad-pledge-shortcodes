@@ -53,8 +53,6 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
         return '';
     }
 
-    wp_enqueue_style( 'gaad-participant-grid', plugin_dir_url( __FILE__ ) . '../assets/participant-grid.css', array(), '1.0' );
-
     $search_criteria = array(
         'field_filters' => array(
             array(
