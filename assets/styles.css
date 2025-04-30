@@ -8,24 +8,17 @@
   margin-left:0 !important;
 }
 
-@media (min-width: 600px) {
-  .gaad-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .gaad-grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
 
 .gaad-grid__item {
-  background-color: #f9f9f9;
-  border-radius: 6px;
-  padding: 1rem;
-  text-align: center;
   list-style-type: none !important;
+  box-shadow: 0 0 15px 2px rgba(7, 36, 70, .1);
+  border-radius: 5px;
+  background-color: #fff;
+  border-bottom: 8px solid #f3cd1e;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: .3px;
+  line-height: 24px;
 }
 
 .gaad-grid__image-wrap {
@@ -33,21 +26,95 @@
 }
 
 .gaad-grid__image {
-  width: 80px;
-  height: 80px;
+  width: 100%;
+  height: 350px;
   object-fit: cover;
-  border-radius: 50%;
+  border-radius: 5px 5px 0 0;
+}
+
+.gaad-grid__image.is-fallback {
+  padding: 1rem;
+  height: 100%;
+}
+
+.gaad-grid__text {
+  padding: 0 1rem;
+  margin-bottom: 1rem;
+}
+
+.gaad-grid__name-link {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 0.25rem;
 }
 
 .gaad-grid__name {
   font-size: 1.125rem;
-  margin: 0.5rem 0;
+  margin: 0;
 }
 
-.gaad-grid__meta,
+.gaad-grid__link svg {
+  height:24px;
+  width:24px;
+}
+
+.gaad-grid__link {
+  border-bottom: 2px solid #fff;
+  height:24px;
+}
+
+.gaad-grid__link:hover {
+  border-bottom: 2px solid #195f9e;
+}
+
+.gaad-company-info {
+  color: #195f9e;
+  font-weight: 700;
+  margin-bottom:.5rem;
+  display:block;
+}
+
+.gaad-grid__meta {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+}
+
 .gaad-grid__location,
-.gaad-grid__hours,
-.gaad-grid__contribution {
+.gaad-grid__hours {
   margin: 0.25rem 0;
   font-size: 0.95rem;
+}
+
+.gaad-grid__contribution {
+  font-size: 0.8rem;
+  line-height: 0.8rem;
+}
+
+
+@media (min-width: 600px) {
+  .gaad-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .gaad-grid__image {
+        height: 200px;
+  }
+
+  .gaad-grid__image.is-fallback {
+    height: 200px;
+    width: 200px;
+    object-fit: contain;
+  }
+}
+
+@media (min-width: 720px) {
+  .gaad-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .gaad-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
 }

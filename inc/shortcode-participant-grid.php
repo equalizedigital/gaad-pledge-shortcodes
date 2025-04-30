@@ -92,14 +92,33 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
         $last_name  = isset( $entry['1.6'] ) ? $entry['1.6'] : '';
         $name = esc_html( trim( "$first_name $last_name" ) );
         $email        = isset( $entry[3] ) ? sanitize_email( $entry[3] ) : '';
+
         $job_title    = isset( $entry[4] ) ? esc_html( $entry[4] ) : '';
         $company      = isset( $entry[7] ) ? esc_html( $entry[7] ) : '';
+        $job_and_company = '';
+        if ( $job_title && $company ) {
+            $job_and_company = $job_title . ', ' . $company;
+        } elseif ( $job_title ) {
+            $job_and_company = $job_title;
+        } elseif ( $company ) {
+            $job_and_company = $company;
+        }
+
+
         $city    = isset( $entry['6.3'] ) ? $entry['6.3'] : '';
         $state   = isset( $entry['6.4'] ) ? $entry['6.4'] : '';
         $country = isset( $entry['6.6'] ) ? $entry['6.6'] : '';
-
         $location_parts = array_filter( array( $city, $state, $country ) );
         $location = esc_html( implode( ', ', $location_parts ) );
+
+        $website = isset( $entry[35] ) ? trim( $entry[35] ) : '';
+
+        if ( ! empty( $website ) ) {
+            $name_link = '<a href="' . esc_url( $website ) . '" target="_blank" rel="noopener noreferrer">' . $name . '</a>';
+        } else {
+            $name_link = $name;
+        }
+
         $hours        = isset( $entry[8] ) ? absint( $entry[8] ) : 0;
         $contribution = isset( $entry[11] ) ? esc_html( $entry[11] ) : '';
         $image_choice = isset( $entry[33] ) ? $entry[33] : '';
@@ -111,12 +130,12 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
             $alt = esc_attr( $entry[32] );
         } elseif ( $image_choice === 'Gravatar' && ! empty( $email ) ) {
             $hash = md5( strtolower( trim( $email ) ) );
-            $gravatar_url = 'https://www.gravatar.com/avatar/' . $hash . '?s=200&d=404';
+            $gravatar_url = 'https://www.gravatar.com/avatar/' . $hash . '?s=380&d=404';
 
             $headers = @get_headers( $gravatar_url );
             if ( is_array( $headers ) && strpos( $headers[0], '200' ) !== false ) {
                 $image_url = esc_url( $gravatar_url );
-                $alt = gaad_get_gravatar_alt_text( $email );
+                $alt = $name;
             }
         }
 
@@ -125,17 +144,41 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
             $image_url = plugin_dir_url( __FILE__ ) . '../assets/emblem.svg';
             $alt = '';
         }
+        $is_fallback = strpos( $image_url, 'emblem.svg' ) !== false;
+        $image_class = 'gaad-grid__image' . ( $is_fallback ? ' is-fallback' : '' );
+
 
         echo '<li class="gaad-grid__item">';
         echo '<div class="gaad-grid__image-wrap">';
-        echo '<img class="gaad-grid__image" src="' . $image_url . '" alt="' . esc_attr( $alt ) . '" />';
+        echo '<img class="' . esc_attr( $image_class ) . '" src="' . esc_url( $image_url ) . '" alt="' . esc_attr( $alt ) . '" />';
         echo '</div>';
-        echo '<div class="gaad-grid__text">';
+
+        echo '<div class="gaad-grid__text"><div class="gaad-grid__name-link">';
+
         echo '<h3 class="gaad-grid__name">' . $name . '</h3>';
-        echo '<p class="gaad-grid__meta">' . $job_title . ( $company ? ', ' . $company : '' ) . '</p>';
-        echo '<p class="gaad-grid__location">' . $location . '</p>';
-        echo '<p class="gaad-grid__hours"><strong>' . $hours . ' hour' . ( $hours === 1 ? '' : 's' ) . ' pledged</strong></p>';
-        echo '<p class="gaad-grid__contribution">' . $contribution . '</p>';
+
+        if ( ! empty( $website ) ) {
+            $aria_label = 'Website for ' . trim( "$first_name $last_name" );
+            echo ' <a href="' . esc_url( $website ) . '" rel="noopener noreferrer" aria-label="' . esc_attr( $aria_label ) . '" class="gaad-grid__link">';
+            echo '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 inline-icon" aria-hidden="true">';
+            echo '<path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />';
+            echo '</svg>';
+            echo '</a>';
+        }
+
+        echo '</div>';
+
+
+        echo '<p class="gaad-grid__meta">';
+
+        if ( $job_and_company ) {
+            echo '<span class="gaad-company-info">' . esc_html( $job_and_company ) . '</span>';
+        }
+
+        echo esc_html( $location ) . '</p>';
+
+        echo '<p class="gaad-grid__hours"><strong>' . $hours . ' hour' . ( $hours === 1 ? '' : 's' ) . ' pledged:</strong><br>';
+        echo '<span class="gaad-grid__contribution">' . $contribution . '</span></p>';
         echo '</div>';
         echo '</li>';
     }
