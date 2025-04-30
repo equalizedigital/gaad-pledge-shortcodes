@@ -27,14 +27,6 @@ function gaad_hour_total_shortcode_handler( $atts ) {
         return '';
     }
 
-    // Check for cached total
-    $transient_key = 'gaad_hour_total_' . $form_id;
-    $cached_total  = get_transient( $transient_key );
-
-    if ( false !== $cached_total ) {
-        return esc_html( $cached_total );
-    }
-
     if ( ! class_exists( 'GFAPI' ) ) {
         return '';
     }
@@ -64,9 +56,6 @@ function gaad_hour_total_shortcode_handler( $atts ) {
 
         $paging['offset'] += $paging['page_size'];
     } while ( count( $entries ) === $paging['page_size'] );
-
-    // Cache the result for 30 minutes
-    set_transient( $transient_key, $total_hours, 30 * MINUTE_IN_SECONDS );
 
     return esc_html( $total_hours );
 }

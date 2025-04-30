@@ -27,14 +27,6 @@ function gaad_people_count_shortcode_handler( $atts ) {
         return '';
     }
 
-    // Check if cached count exists
-    $transient_key = 'gaad_people_count_' . $form_id;
-    $cached_count  = get_transient( $transient_key );
-
-    if ( false !== $cached_count ) {
-        return esc_html( $cached_count );
-    }
-
     if ( ! class_exists( 'GFAPI' ) ) {
         return '';
     }
@@ -49,9 +41,6 @@ function gaad_people_count_shortcode_handler( $atts ) {
     );
 
     $entry_count = GFAPI::count_entries( $form_id, $search_criteria );
-
-    // Cache result for 30 minutes
-    set_transient( $transient_key, $entry_count, 30 * MINUTE_IN_SECONDS );
 
     return esc_html( $entry_count );
 }
