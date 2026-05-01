@@ -34,8 +34,8 @@ function gaad_people_count_shortcode_handler( $atts ) {
     $search_criteria = array(
         'field_filters' => array(
             array(
-                'key'   => '31',
-                'value' => 'Approved',
+                'key'   => EDGPS_FIELD_STATUS,
+                'value' => EDGPS_STATUS_APPROVED,
             ),
         ),
     );
