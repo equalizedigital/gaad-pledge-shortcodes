@@ -40,6 +40,7 @@ define( 'EDGPS_FIELD_WEBSITE',      35 );
 define( 'EDGPS_FIELD_STATUS',       '31' );
 define( 'EDGPS_STATUS_APPROVED',    'Approved' );
 define( 'EDGPS_PAGE_SIZE',          1000 );
+define( 'EDGPS_BATCH_SIZE',         1000 );
 define( 'EDGPS_GRAVATAR_SIZE',      380 );
 
 require_once( EDGPS_DIR . '/inc/shortcode-people-count.php' );

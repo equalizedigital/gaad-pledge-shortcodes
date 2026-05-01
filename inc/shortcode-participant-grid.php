@@ -125,7 +125,7 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
 
         if ( $image_choice === 'Let me upload an image' && ! empty( $entry[ EDGPS_FIELD_IMAGE_UPLOAD ] ) ) {
             $image_url = esc_url( $entry[ EDGPS_FIELD_IMAGE_UPLOAD ] );
-            $alt = esc_attr( $entry[ EDGPS_FIELD_IMAGE_ALT ] );
+            $alt = isset( $entry[ EDGPS_FIELD_IMAGE_ALT ] ) ? esc_attr( $entry[ EDGPS_FIELD_IMAGE_ALT ] ) : '';
         } elseif ( $image_choice === 'Gravatar' && ! empty( $email ) ) {
             $hash = md5( strtolower( trim( $email ) ) );
             $gravatar_url = 'https://www.gravatar.com/avatar/' . $hash . '?s=' . EDGPS_GRAVATAR_SIZE . '&d=404';

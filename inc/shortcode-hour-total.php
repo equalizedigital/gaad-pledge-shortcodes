@@ -40,7 +40,7 @@ function gaad_hour_total_shortcode_handler( $atts ) {
         ),
     );
 
-    $paging = array( 'offset' => 0, 'page_size' => EDGPS_PAGE_SIZE );
+    $paging = array( 'offset' => 0, 'page_size' => EDGPS_BATCH_SIZE );
     $total_hours = 0;
 
     do {
