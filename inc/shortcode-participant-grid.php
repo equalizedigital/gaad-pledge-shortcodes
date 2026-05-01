@@ -175,7 +175,7 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
 
         echo esc_html( $location ) . '</p>';
 
-        echo '<p class="gaad-grid__hours"><strong>' . $hours . ' hour' . ( $hours === 1 ? '' : 's' ) . ' pledged:</strong><br>';
+        echo '<p class="gaad-grid__hours"><strong>' . $hours . ' hour' . ( $hours == 1 ? '' : 's' ) . ' pledged:</strong><br>';
         echo '<span class="gaad-grid__contribution">' . $contribution . '</span></p>';
         echo '</div>';
         echo '</li>';
