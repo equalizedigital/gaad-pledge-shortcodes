@@ -117,7 +117,7 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
             $name_link = $name;
         }
 
-        $hours        = isset( $entry[8] ) ? absint( $entry[8] ) : 0;
+        $hours = isset( $entry[8] ) ? floatval( $entry[8] ) : 0;
         $contribution = isset( $entry[11] ) ? esc_html( $entry[11] ) : '';
         $image_choice = isset( $entry[33] ) ? $entry[33] : '';
         $image_url    = '';
