@@ -2,7 +2,7 @@
 /**
 * Plugin Name: GAAD Pledge Shortcodes
 * Description: Adds shortcodes to our website so we can display GAAD pledges on our landing page. Requires Gravity Forms and specific forms to function. 
-* Version:     1.0
+* Version:     1.1.0
 * Author:      Equalize Digital
 * Author URI:  https://equalizedigital.com
 * 
