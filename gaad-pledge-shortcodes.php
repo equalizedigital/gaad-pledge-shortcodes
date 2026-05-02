@@ -42,6 +42,7 @@ define( 'EDGPS_STATUS_APPROVED',    'Approved' );
 define( 'EDGPS_PAGE_SIZE',          1000 );
 define( 'EDGPS_BATCH_SIZE',         1000 );
 define( 'EDGPS_GRAVATAR_SIZE',      380 );
+define( 'EDGPS_GRAVATAR_DEFAULT',   '404' );
 
 require_once( EDGPS_DIR . '/inc/shortcode-people-count.php' );
 require_once( EDGPS_DIR . '/inc/shortcode-hour-total.php' );
