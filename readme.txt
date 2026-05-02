@@ -13,7 +13,7 @@ Adds shortcodes to our website so we can display GAAD pledges on our landing pag
 
 GAAD Pledge Shortcodes is a simple plugin that allows us to list Gravity Forms entries on the front end of the website. 
 
-There are no settings. Simply activate the plugin and start using the shortcodes. This plugin does expect specific fields to exist in a specific form and calls the fields by ID numbers, so it's not really suitable for use outside of the Equalize Digital Website.
+There are no settings. Simply activate the plugin and start using the shortcodes. This plugin does expect specific fields to exist in a specific form. Field IDs are defined as constants in the main plugin file, so it's not really suitable for use outside of the Equalize Digital Website.
 
 
 == Installation ==
@@ -32,6 +32,12 @@ Each shortcode accepts an attribute for the Gravity Form form ID number to make 
 Example shortcode with attribute: `[gaad_pledge_people_count gf_id="1"]`
 
 == Changelog ==
+
+= 1.1.0 =
+* Replaced hardcoded Gravity Forms field IDs with named constants defined in the main plugin file.
+* Improved Gravatar handling: existence checks are now cached in a single transient per form and batched before rendering, removing HTTP calls from the render loop.
+* Fixed float pluralization bug where 1.0 hours displayed as "1 hours".
+* Fixed double-encoding of participant names used in image alt attributes.
 
 = 1.0.0 =
 * This is version 1 - all new and shiny.
