@@ -127,13 +127,21 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
             $image_url = esc_url( $entry[ EDGPS_FIELD_IMAGE_UPLOAD ] );
             $alt = isset( $entry[ EDGPS_FIELD_IMAGE_ALT ] ) ? esc_attr( $entry[ EDGPS_FIELD_IMAGE_ALT ] ) : '';
         } elseif ( $image_choice === 'Gravatar' && ! empty( $email ) ) {
-            $hash = md5( strtolower( trim( $email ) ) );
+            $hash         = md5( strtolower( trim( $email ) ) );
             $gravatar_url = 'https://www.gravatar.com/avatar/' . $hash . '?s=' . EDGPS_GRAVATAR_SIZE . '&d=' . EDGPS_GRAVATAR_DEFAULT;
 
-            $headers = @get_headers( $gravatar_url );
-            if ( is_array( $headers ) && strpos( $headers[0], '200' ) !== false ) {
+            $transient_key   = 'edgps_gravatar_' . $hash;
+            $gravatar_exists = get_transient( $transient_key );
+
+            if ( false === $gravatar_exists ) {
+                $response        = wp_remote_head( $gravatar_url );
+                $gravatar_exists = ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) ? 'yes' : 'no';
+                set_transient( $transient_key, $gravatar_exists, DAY_IN_SECONDS );
+            }
+
+            if ( 'yes' === $gravatar_exists ) {
                 $image_url = esc_url( $gravatar_url );
-                $alt = $name;
+                $alt       = $name;
             }
         }
 
