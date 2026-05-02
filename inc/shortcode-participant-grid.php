@@ -83,17 +83,40 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
     });
 
 
-    $gravatar_cache_key     = 'edgps_gravatar_cache_' . $form_id;
-    $gravatar_cache         = get_transient( $gravatar_cache_key );
-    $gravatar_cache         = is_array( $gravatar_cache ) ? $gravatar_cache : array();
-    $gravatar_cache_updated = false;
+    $gravatar_cache_key = 'edgps_gravatar_cache_' . $form_id;
+    $gravatar_cache     = get_transient( $gravatar_cache_key );
+    $gravatar_cache     = is_array( $gravatar_cache ) ? $gravatar_cache : array();
+
+    // Probe all uncached Gravatar hashes before rendering so the loop stays HTTP-free.
+    $cache_updated = false;
+    foreach ( $entries as $entry ) {
+        if ( 'Gravatar' !== ( isset( $entry[ EDGPS_FIELD_IMAGE_CHOICE ] ) ? $entry[ EDGPS_FIELD_IMAGE_CHOICE ] : '' ) ) {
+            continue;
+        }
+        $email = isset( $entry[ EDGPS_FIELD_EMAIL ] ) ? sanitize_email( $entry[ EDGPS_FIELD_EMAIL ] ) : '';
+        if ( empty( $email ) ) {
+            continue;
+        }
+        $hash = md5( strtolower( trim( $email ) ) );
+        if ( array_key_exists( $hash, $gravatar_cache ) ) {
+            continue;
+        }
+        $probe_url              = 'https://www.gravatar.com/avatar/' . $hash . '?s=' . EDGPS_GRAVATAR_SIZE . '&d=' . EDGPS_GRAVATAR_DEFAULT;
+        $response               = wp_remote_head( $probe_url );
+        $gravatar_cache[ $hash ] = ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) );
+        $cache_updated          = true;
+    }
+    if ( $cache_updated ) {
+        set_transient( $gravatar_cache_key, $gravatar_cache, DAY_IN_SECONDS );
+    }
 
     ob_start();
     echo '<ul class="gaad-grid">';
     foreach ( $entries as $entry ) {
         $first_name = isset( $entry[ EDGPS_FIELD_FIRST_NAME ] ) ? $entry[ EDGPS_FIELD_FIRST_NAME ] : '';
         $last_name  = isset( $entry[ EDGPS_FIELD_LAST_NAME ] )  ? $entry[ EDGPS_FIELD_LAST_NAME ]  : '';
-        $name = esc_html( trim( "$first_name $last_name" ) );
+        $name_raw   = trim( "$first_name $last_name" );
+        $name       = esc_html( $name_raw );
         $email        = isset( $entry[ EDGPS_FIELD_EMAIL ] ) ? sanitize_email( $entry[ EDGPS_FIELD_EMAIL ] ) : '';
 
         $job_title    = isset( $entry[ EDGPS_FIELD_JOB_TITLE ] ) ? esc_html( $entry[ EDGPS_FIELD_JOB_TITLE ] ) : '';
@@ -130,20 +153,14 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
 
         if ( $image_choice === 'Let me upload an image' && ! empty( $entry[ EDGPS_FIELD_IMAGE_UPLOAD ] ) ) {
             $image_url = esc_url( $entry[ EDGPS_FIELD_IMAGE_UPLOAD ] );
-            $alt = isset( $entry[ EDGPS_FIELD_IMAGE_ALT ] ) ? esc_attr( $entry[ EDGPS_FIELD_IMAGE_ALT ] ) : '';
+            $alt       = isset( $entry[ EDGPS_FIELD_IMAGE_ALT ] ) ? sanitize_text_field( $entry[ EDGPS_FIELD_IMAGE_ALT ] ) : '';
         } elseif ( $image_choice === 'Gravatar' && ! empty( $email ) ) {
             $hash         = md5( strtolower( trim( $email ) ) );
             $gravatar_url = 'https://www.gravatar.com/avatar/' . $hash . '?s=' . EDGPS_GRAVATAR_SIZE . '&d=' . EDGPS_GRAVATAR_DEFAULT;
 
-            if ( ! array_key_exists( $hash, $gravatar_cache ) ) {
-                $response                = wp_remote_head( $gravatar_url );
-                $gravatar_cache[ $hash ] = ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) );
-                $gravatar_cache_updated  = true;
-            }
-
-            if ( $gravatar_cache[ $hash ] ) {
+            if ( ! empty( $gravatar_cache[ $hash ] ) ) {
                 $image_url = esc_url( $gravatar_url );
-                $alt       = $name;
+                $alt       = $name_raw;
             }
         }
 
@@ -185,16 +202,12 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
 
         echo esc_html( $location ) . '</p>';
 
-        echo '<p class="gaad-grid__hours"><strong>' . $hours . ' hour' . ( $hours === 1 ? '' : 's' ) . ' pledged:</strong><br>';
+        echo '<p class="gaad-grid__hours"><strong>' . $hours . ' hour' . ( 1.0 === $hours ? '' : 's' ) . ' pledged:</strong><br>';
         echo '<span class="gaad-grid__contribution">' . $contribution . '</span></p>';
         echo '</div>';
         echo '</li>';
     }
     echo '</ul>';
-
-    if ( $gravatar_cache_updated ) {
-        set_transient( $gravatar_cache_key, $gravatar_cache, DAY_IN_SECONDS );
-    }
 
     return ob_get_clean();
 }
