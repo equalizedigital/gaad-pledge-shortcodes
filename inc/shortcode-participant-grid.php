@@ -83,6 +83,11 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
     });
 
 
+    $gravatar_cache_key     = 'edgps_gravatar_cache_' . $form_id;
+    $gravatar_cache         = get_transient( $gravatar_cache_key );
+    $gravatar_cache         = is_array( $gravatar_cache ) ? $gravatar_cache : array();
+    $gravatar_cache_updated = false;
+
     ob_start();
     echo '<ul class="gaad-grid">';
     foreach ( $entries as $entry ) {
@@ -130,16 +135,13 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
             $hash         = md5( strtolower( trim( $email ) ) );
             $gravatar_url = 'https://www.gravatar.com/avatar/' . $hash . '?s=' . EDGPS_GRAVATAR_SIZE . '&d=' . EDGPS_GRAVATAR_DEFAULT;
 
-            $transient_key   = 'edgps_gravatar_' . $hash;
-            $gravatar_exists = get_transient( $transient_key );
-
-            if ( false === $gravatar_exists ) {
-                $response        = wp_remote_head( $gravatar_url );
-                $gravatar_exists = ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) ? 'yes' : 'no';
-                set_transient( $transient_key, $gravatar_exists, DAY_IN_SECONDS );
+            if ( ! array_key_exists( $hash, $gravatar_cache ) ) {
+                $response                = wp_remote_head( $gravatar_url );
+                $gravatar_cache[ $hash ] = ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) );
+                $gravatar_cache_updated  = true;
             }
 
-            if ( 'yes' === $gravatar_exists ) {
+            if ( $gravatar_cache[ $hash ] ) {
                 $image_url = esc_url( $gravatar_url );
                 $alt       = $name;
             }
@@ -189,6 +191,10 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
         echo '</li>';
     }
     echo '</ul>';
+
+    if ( $gravatar_cache_updated ) {
+        set_transient( $gravatar_cache_key, $gravatar_cache, DAY_IN_SECONDS );
+    }
 
     return ob_get_clean();
 }
