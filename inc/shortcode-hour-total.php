@@ -34,13 +34,13 @@ function gaad_hour_total_shortcode_handler( $atts ) {
     $search_criteria = array(
         'field_filters' => array(
             array(
-                'key'   => '31', // Status field
-                'value' => 'Approved',
+                'key'   => EDGPS_FIELD_STATUS,
+                'value' => EDGPS_STATUS_APPROVED,
             ),
         ),
     );
 
-    $paging = array( 'offset' => 0, 'page_size' => 1000 );
+    $paging = array( 'offset' => 0, 'page_size' => EDGPS_BATCH_SIZE );
     $total_hours = 0;
 
     do {
@@ -50,7 +50,7 @@ function gaad_hour_total_shortcode_handler( $atts ) {
         }
 
         foreach ( $entries as $entry ) {
-            $hours = isset( $entry[8] ) ? floatval( $entry[8] ) : 0;
+            $hours = isset( $entry[ EDGPS_FIELD_HOURS ] ) ? floatval( $entry[ EDGPS_FIELD_HOURS ] ) : 0;
             $total_hours += $hours;
         }
 

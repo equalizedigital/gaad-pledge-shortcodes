@@ -56,13 +56,13 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
     $search_criteria = array(
         'field_filters' => array(
             array(
-                'key'   => '31',
-                'value' => 'Approved',
+                'key'   => EDGPS_FIELD_STATUS,
+                'value' => EDGPS_STATUS_APPROVED,
             ),
         ),
     );
 
-    $paging = array( 'offset' => 0, 'page_size' => 1000 );
+    $paging = array( 'offset' => 0, 'page_size' => EDGPS_PAGE_SIZE );
     $entries = GFAPI::get_entries( $form_id, $search_criteria, null, $paging );
 
     if ( is_wp_error( $entries ) || empty( $entries ) ) {
@@ -71,10 +71,10 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
 
     // Sort by name alphabetically
     usort( $entries, function( $a, $b ) {
-        $a_first = isset( $a['1.3'] ) ? strtolower( $a['1.3'] ) : '';
-        $a_last  = isset( $a['1.6'] ) ? strtolower( $a['1.6'] ) : '';
-        $b_first = isset( $b['1.3'] ) ? strtolower( $b['1.3'] ) : '';
-        $b_last  = isset( $b['1.6'] ) ? strtolower( $b['1.6'] ) : '';
+        $a_first = isset( $a[ EDGPS_FIELD_FIRST_NAME ] ) ? strtolower( $a[ EDGPS_FIELD_FIRST_NAME ] ) : '';
+        $a_last  = isset( $a[ EDGPS_FIELD_LAST_NAME ] )  ? strtolower( $a[ EDGPS_FIELD_LAST_NAME ] )  : '';
+        $b_first = isset( $b[ EDGPS_FIELD_FIRST_NAME ] ) ? strtolower( $b[ EDGPS_FIELD_FIRST_NAME ] ) : '';
+        $b_last  = isset( $b[ EDGPS_FIELD_LAST_NAME ] )  ? strtolower( $b[ EDGPS_FIELD_LAST_NAME ] )  : '';
 
         $a_full = trim( "$a_first $a_last" );
         $b_full = trim( "$b_first $b_last" );
@@ -83,16 +83,44 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
     });
 
 
+    $gravatar_cache_key = 'edgps_gravatar_cache_' . $form_id;
+    $gravatar_cache     = get_transient( $gravatar_cache_key );
+    $gravatar_cache     = is_array( $gravatar_cache ) ? $gravatar_cache : array();
+
+    // Probe all uncached Gravatar hashes before rendering so the loop stays HTTP-free.
+    $cache_updated = false;
+    foreach ( $entries as $entry ) {
+        if ( 'Gravatar' !== ( isset( $entry[ EDGPS_FIELD_IMAGE_CHOICE ] ) ? $entry[ EDGPS_FIELD_IMAGE_CHOICE ] : '' ) ) {
+            continue;
+        }
+        $email = isset( $entry[ EDGPS_FIELD_EMAIL ] ) ? sanitize_email( $entry[ EDGPS_FIELD_EMAIL ] ) : '';
+        if ( empty( $email ) ) {
+            continue;
+        }
+        $hash = md5( strtolower( trim( $email ) ) );
+        if ( array_key_exists( $hash, $gravatar_cache ) ) {
+            continue;
+        }
+        $probe_url              = 'https://www.gravatar.com/avatar/' . $hash . '?s=' . EDGPS_GRAVATAR_SIZE . '&d=' . EDGPS_GRAVATAR_DEFAULT;
+        $response               = wp_remote_head( $probe_url );
+        $gravatar_cache[ $hash ] = ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) );
+        $cache_updated          = true;
+    }
+    if ( $cache_updated ) {
+        set_transient( $gravatar_cache_key, $gravatar_cache, DAY_IN_SECONDS );
+    }
+
     ob_start();
     echo '<ul class="gaad-grid">';
     foreach ( $entries as $entry ) {
-        $first_name = isset( $entry['1.3'] ) ? $entry['1.3'] : '';
-        $last_name  = isset( $entry['1.6'] ) ? $entry['1.6'] : '';
-        $name = esc_html( trim( "$first_name $last_name" ) );
-        $email        = isset( $entry[3] ) ? sanitize_email( $entry[3] ) : '';
+        $first_name = isset( $entry[ EDGPS_FIELD_FIRST_NAME ] ) ? $entry[ EDGPS_FIELD_FIRST_NAME ] : '';
+        $last_name  = isset( $entry[ EDGPS_FIELD_LAST_NAME ] )  ? $entry[ EDGPS_FIELD_LAST_NAME ]  : '';
+        $name_raw   = trim( "$first_name $last_name" );
+        $name       = esc_html( $name_raw );
+        $email        = isset( $entry[ EDGPS_FIELD_EMAIL ] ) ? sanitize_email( $entry[ EDGPS_FIELD_EMAIL ] ) : '';
 
-        $job_title    = isset( $entry[4] ) ? esc_html( $entry[4] ) : '';
-        $company      = isset( $entry[7] ) ? esc_html( $entry[7] ) : '';
+        $job_title    = isset( $entry[ EDGPS_FIELD_JOB_TITLE ] ) ? esc_html( $entry[ EDGPS_FIELD_JOB_TITLE ] ) : '';
+        $company      = isset( $entry[ EDGPS_FIELD_COMPANY ] )   ? esc_html( $entry[ EDGPS_FIELD_COMPANY ] )   : '';
         $job_and_company = '';
         if ( $job_title && $company ) {
             $job_and_company = $job_title . ', ' . $company;
@@ -103,13 +131,13 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
         }
 
 
-        $city    = isset( $entry['6.3'] ) ? $entry['6.3'] : '';
-        $state   = isset( $entry['6.4'] ) ? $entry['6.4'] : '';
-        $country = isset( $entry['6.6'] ) ? $entry['6.6'] : '';
+        $city    = isset( $entry[ EDGPS_FIELD_CITY ] )    ? $entry[ EDGPS_FIELD_CITY ]    : '';
+        $state   = isset( $entry[ EDGPS_FIELD_STATE ] )   ? $entry[ EDGPS_FIELD_STATE ]   : '';
+        $country = isset( $entry[ EDGPS_FIELD_COUNTRY ] ) ? $entry[ EDGPS_FIELD_COUNTRY ] : '';
         $location_parts = array_filter( array( $city, $state, $country ) );
         $location = esc_html( implode( ', ', $location_parts ) );
 
-        $website = isset( $entry[35] ) ? trim( $entry[35] ) : '';
+        $website = isset( $entry[ EDGPS_FIELD_WEBSITE ] ) ? trim( $entry[ EDGPS_FIELD_WEBSITE ] ) : '';
 
         if ( ! empty( $website ) ) {
             $name_link = '<a href="' . esc_url( $website ) . '" target="_blank" rel="noopener noreferrer">' . $name . '</a>';
@@ -117,23 +145,22 @@ function gaad_participant_grid_shortcode_handler( $atts ) {
             $name_link = $name;
         }
 
-        $hours = isset( $entry[8] ) ? floatval( $entry[8] ) : 0;
-        $contribution = isset( $entry[11] ) ? esc_html( $entry[11] ) : '';
-        $image_choice = isset( $entry[33] ) ? $entry[33] : '';
+        $hours        = isset( $entry[ EDGPS_FIELD_HOURS ] )        ? floatval( $entry[ EDGPS_FIELD_HOURS ] )        : 0;
+        $contribution = isset( $entry[ EDGPS_FIELD_CONTRIBUTION ] ) ? esc_html( $entry[ EDGPS_FIELD_CONTRIBUTION ] ) : '';
+        $image_choice = isset( $entry[ EDGPS_FIELD_IMAGE_CHOICE ] ) ? $entry[ EDGPS_FIELD_IMAGE_CHOICE ]             : '';
         $image_url    = '';
         $alt          = '';
 
-        if ( $image_choice === 'Let me upload an image' && ! empty( $entry[30] ) ) {
-            $image_url = esc_url( $entry[30] );
-            $alt = esc_attr( $entry[32] );
+        if ( $image_choice === 'Let me upload an image' && ! empty( $entry[ EDGPS_FIELD_IMAGE_UPLOAD ] ) ) {
+            $image_url = esc_url( $entry[ EDGPS_FIELD_IMAGE_UPLOAD ] );
+            $alt       = isset( $entry[ EDGPS_FIELD_IMAGE_ALT ] ) ? sanitize_text_field( $entry[ EDGPS_FIELD_IMAGE_ALT ] ) : '';
         } elseif ( $image_choice === 'Gravatar' && ! empty( $email ) ) {
-            $hash = md5( strtolower( trim( $email ) ) );
-            $gravatar_url = 'https://www.gravatar.com/avatar/' . $hash . '?s=380&d=404';
+            $hash         = md5( strtolower( trim( $email ) ) );
+            $gravatar_url = 'https://www.gravatar.com/avatar/' . $hash . '?s=' . EDGPS_GRAVATAR_SIZE . '&d=' . EDGPS_GRAVATAR_DEFAULT;
 
-            $headers = @get_headers( $gravatar_url );
-            if ( is_array( $headers ) && strpos( $headers[0], '200' ) !== false ) {
+            if ( ! empty( $gravatar_cache[ $hash ] ) ) {
                 $image_url = esc_url( $gravatar_url );
-                $alt = $name;
+                $alt       = $name_raw;
             }
         }
 
